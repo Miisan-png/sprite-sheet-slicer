@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <map>
+#include <fstream>
 
 namespace fs = std::filesystem;
 
@@ -508,12 +509,73 @@ int main(int, char**) {
         }
         Tooltip("Export selected sprites to the output folder");
 
+        if (ImGui::Button("Export JSON", ImVec2(-1, 50))) {
+            if (spritesheetTexture.textureID && !selectedSprites.empty()) {
+                int availableWidth = spritesheetTexture.width - config.marginX;
+                int availableHeight = spritesheetTexture.height - config.marginY;
+                int spritesPerRow = std::max(1, (availableWidth + config.spacingX) / (config.spriteWidth + config.spacingX));
+                int spritesPerCol = std::max(1, (availableHeight + config.spacingY) / (config.spriteHeight + config.spacingY));
+
+                std::string jsonPath = std::string(config.outputDir) + "/spritesheet.json";
+                try {
+                    fs::create_directories(config.outputDir);
+                    std::ofstream jsonFile(jsonPath);
+                    if (jsonFile.is_open()) {
+                        jsonFile << "{\n";
+                        jsonFile << "  \"image\": \"" << config.inputPath << "\",\n";
+                        jsonFile << "  \"spriteWidth\": " << config.spriteWidth << ",\n";
+                        jsonFile << "  \"spriteHeight\": " << config.spriteHeight << ",\n";
+                        jsonFile << "  \"sprites\": [\n";
+                        bool first = true;
+                        for (int row = 0; row < spritesPerCol; row++) {
+                            for (int col = 0; col < spritesPerRow; col++) {
+                                int idx = row * spritesPerRow + col;
+                                if (idx >= (int)selectedSprites.size() || !selectedSprites[idx]) continue;
+
+                                int x = config.marginX + col * (config.spriteWidth + config.spacingX);
+                                int y = config.marginY + row * (config.spriteHeight + config.spacingY);
+
+                                if (!first) jsonFile << ",\n";
+                                first = false;
+
+                                std::string name;
+                                auto it = spriteNames.find(idx);
+                                if (it != spriteNames.end() && !it->second.empty()) {
+                                    name = it->second;
+                                } else {
+                                    name = std::string(config.spritePrefix) + "_" + std::to_string(idx);
+                                }
+
+                                jsonFile << "    {\n";
+                                jsonFile << "      \"name\": \"" << name << "\",\n";
+                                jsonFile << "      \"x\": " << x << ",\n";
+                                jsonFile << "      \"y\": " << y << ",\n";
+                                jsonFile << "      \"w\": " << config.spriteWidth << ",\n";
+                                jsonFile << "      \"h\": " << config.spriteHeight << "\n";
+                                jsonFile << "    }";
+                            }
+                        }
+                        jsonFile << "\n  ]\n}\n";
+                        jsonFile.close();
+                        statusMessage = "JSON exported to " + jsonPath;
+                    } else {
+                        statusMessage = "Error: Could not write JSON file";
+                    }
+                } catch (const std::exception& e) {
+                    statusMessage = "Error: " + std::string(e.what());
+                }
+            } else {
+                statusMessage = "Error: No image loaded or no sprites selected";
+            }
+        }
+        Tooltip("Export sprite coordinates as JSON for use in your game");
+
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
         ImGui::TextWrapped("%s", statusMessage.c_str());
 
-        ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 35);
+        ImGui::Spacing();
         ImGui::Separator();
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
         ImGui::Text("Program by Miisan");

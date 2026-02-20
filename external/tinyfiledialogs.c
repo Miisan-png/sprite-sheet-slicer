@@ -2048,7 +2048,7 @@ static int dialogPresent ( )
 		while ( fgets ( lBuff , sizeof ( lBuff ) , lIn ) != NULL )
 		{}
 		_pclose ( lIn ) ;
-		if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+		if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
 		{
 			lBuff[strlen ( lBuff ) -1] = '\0' ;
 		}
@@ -2159,7 +2159,7 @@ static int messageBoxWinConsole (
 	{}
 	fclose(lIn);
 	remove(lDialogFile);
-    if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+    if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
     {
     	lBuff[strlen ( lBuff ) -1] = '\0' ;
     }
@@ -2635,7 +2635,7 @@ char const * tinyfd_inputBox(
       {
           return NULL ;
       }
-      if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+      if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
       {
           lBuff[strlen ( lBuff ) -1] = '\0' ;
       }
@@ -2934,6 +2934,7 @@ static char const * getVersion ( char const * const aExecutable ) /*version # mu
     strcat ( lTestedString , " --version" ) ;
 
     lIn = popen ( lTestedString , "r" ) ;
+	if ( ! lIn ) return 0 ;
 	lTmp = fgets ( lBuff , sizeof ( lBuff ) , lIn ) ;
 	pclose ( lIn ) ;
     if ( ! lTmp || !(lTmp = strchr ( lBuff , ':' )) ) return 0 ;
@@ -2949,6 +2950,7 @@ static int tryCommand ( char const * const aCommand )
 	FILE * lIn ;
 
 	lIn = popen ( aCommand , "r" ) ;
+	if ( ! lIn ) return 0 ;
 	if ( fgets ( lBuff , sizeof ( lBuff ) , lIn ) == NULL )
 	{	/* present */
 		pclose ( lIn ) ;
@@ -3311,6 +3313,32 @@ static int zenityPresent ( )
 	if ( lZenityPresent < 0 )
 	{
 		lZenityPresent = detectPresence("zenity") ;
+		if ( lZenityPresent )
+		{
+			/* zenity 4+ uses libadwaita which has broken GTK dialog support
+			   on many systems - skip it and fall through to kdialog/others */
+			FILE * lIn = popen ( "zenity --version 2>/dev/null" , "r" ) ;
+			if ( lIn )
+			{
+				char lBuff [128] ;
+				if ( fgets ( lBuff , sizeof ( lBuff ) , lIn ) != NULL )
+				{
+					if ( atoi ( lBuff ) >= 4 )
+					{
+						lZenityPresent = 0 ;
+					}
+				}
+				else
+				{
+					lZenityPresent = 0 ;
+				}
+				pclose ( lIn ) ;
+			}
+			else
+			{
+				lZenityPresent = 0 ;
+			}
+		}
 	}
 	return lZenityPresent && graphicMode ( ) ;
 }
@@ -3355,7 +3383,7 @@ static int zenity3Present ( )
 		if ( zenityPresent() )
 		{
 			lIn = popen ( "zenity --version" , "r" ) ;
-			if ( fgets ( lBuff , sizeof ( lBuff ) , lIn ) != NULL )
+			if ( lIn && fgets ( lBuff , sizeof ( lBuff ) , lIn ) != NULL )
 			{
 				if ( atoi(lBuff) >= 3 )
 				{
@@ -3366,7 +3394,7 @@ static int zenity3Present ( )
 					lZenity3Present = 2 ;
 				}
 			}
-			pclose ( lIn ) ;
+			if ( lIn ) pclose ( lIn ) ;
 		}
 	}
 	return lZenity3Present && graphicMode ( ) ;
@@ -4154,7 +4182,7 @@ tinyfdRes=$(cat /tmp/tinyfd.txt);echo $tinyfdBool$tinyfdRes") ;
 	pclose ( lIn ) ;
 
 	/* printf ( "lBuff: %s len: %lu \n" , lBuff , strlen(lBuff) ) ; */
-	if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+	if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
 	{
 		lBuff[strlen ( lBuff ) -1] = '\0' ;
 	}
@@ -4596,7 +4624,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
 			free(lDialogString);
 			return NULL ;
 		}
-		if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+		if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
 		{
 			lBuff[strlen ( lBuff ) -1] = '\0' ;
 		}
@@ -4639,7 +4667,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
 
 	/* printf ( "len Buff: %lu\n" , strlen(lBuff) ) ; */
 	/* printf ( "lBuff0: %s\n" , lBuff ) ; */
-	if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+	if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
 	{
 		lBuff[strlen ( lBuff ) -1] = '\0' ;
 	}
@@ -4965,7 +4993,7 @@ char const * tinyfd_saveFileDialog (
     while ( fgets ( lBuff , sizeof ( lBuff ) , lIn ) != NULL )
     {}
     pclose ( lIn ) ;
-    if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+    if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
     {
     	lBuff[strlen ( lBuff ) -1] = '\0' ;
     }
@@ -5333,7 +5361,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
 		p += strlen ( p );
 	}
     pclose ( lIn ) ;
-    if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+    if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
     {
     	lBuff[strlen ( lBuff ) -1] = '\0' ;
     }
@@ -5577,7 +5605,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
 	while ( fgets ( lBuff , sizeof ( lBuff ) , lIn ) != NULL )
 	{}
 	pclose ( lIn ) ;
-    if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+    if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
     {
     	lBuff[strlen ( lBuff ) -1] = '\0' ;
     }
@@ -5791,7 +5819,7 @@ frontmost of process \\\"Python\\\" to true' ''');");
     }
 	/* printf ( "len Buff: %lu\n" , strlen(lBuff) ) ; */
 	/* printf ( "lBuff0: %s\n" , lBuff ) ; */
-    if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+    if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
     {
     	lBuff[strlen ( lBuff ) -1] = '\0' ;
     }
@@ -5895,7 +5923,7 @@ char const * tinyfd_arrayDialog (
 	while ( fgets ( lBuff , sizeof ( lBuff ) , lIn ) != NULL )
 	{}
 	pclose ( lIn ) ;
-	if ( lBuff[strlen ( lBuff ) -1] == '\n' )
+	if ( strlen ( lBuff ) > 0 && lBuff[strlen ( lBuff ) -1] == '\n' )
 	{
 		lBuff[strlen ( lBuff ) -1] = '\0' ;
 	}

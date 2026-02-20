@@ -1,9 +1,9 @@
 
-if (NOT EXISTS "/mnt/c/Programming/Sprite Sheet Slicer/build-windows/_deps/glfw-build/install_manifest.txt")
-  message(FATAL_ERROR "Cannot find install manifest: \"/mnt/c/Programming/Sprite Sheet Slicer/build-windows/_deps/glfw-build/install_manifest.txt\"")
+if (NOT EXISTS "/home/miisan/Desktop/Dev/sprite-sheet-slicer/_deps/glfw-build/install_manifest.txt")
+  message(FATAL_ERROR "Cannot find install manifest: \"/home/miisan/Desktop/Dev/sprite-sheet-slicer/_deps/glfw-build/install_manifest.txt\"")
 endif()
 
-file(READ "/mnt/c/Programming/Sprite Sheet Slicer/build-windows/_deps/glfw-build/install_manifest.txt" files)
+file(READ "/home/miisan/Desktop/Dev/sprite-sheet-slicer/_deps/glfw-build/install_manifest.txt" files)
 string(REGEX REPLACE "\n" ";" files "${files}")
 
 foreach (file ${files})

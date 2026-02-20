@@ -6,13 +6,39 @@ Originally built for a custom game engine, now shared for all developers.
 You can download the latest release here:
 [https://miisan.itch.io/sprite-sheet-slicer](https://miisan.itch.io/sprite-sheet-slicer)
 
-## Build
+## Build & Run (Linux)
 
 ```bash
-mkdir build
-cd build
+./run.sh
+```
+
+This script will automatically clone dependencies, build the project, and run it.
+
+### Manual Build
+
+```bash
+# Clone ImGui if not present
+git clone --depth 1 https://github.com/ocornut/imgui.git external/imgui
+
+# Build
+mkdir build && cd build
 cmake ..
-make
+make -j$(nproc)
+
+# Run
+./spritesheet_slicer
+```
+
+### Dependencies (Linux)
+
+**Arch Linux:**
+```bash
+sudo pacman -S cmake gcc make git libgl
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt install cmake g++ make git libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
 ```
 
 ## Usage
